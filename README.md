@@ -61,3 +61,18 @@ When another client sends a request during that sleep duration, our single-threa
 This behaviour highlights an important limitation of single-threaded servers when handling blocking operations. Handling this situation is very crucial, especially when our web server has many concurrent users. If we can't solve this issue, then it will significantly degrade our system's responsiveness. 
 
 We can address this issue by using mechanisms such as thread pools and sychronizations. These will help us in handling multiple concurrent requests.
+
+# Reflection 5
+Thread pools are essentially a pool of threads that can execute multiple tasks concurrently. Unlike regular thread spawning, thread pools already have a fixed amount of spawned threads ready for work. These threads can be reused when needed, which is much more resource efficient than spawning threads for every concurrent requests. 
+
+The main components of a thread pool are:
+- `The pool`: owns a vector of threads
+- `Worker`: the thread that executes code
+- `Jobs/Channel`: a queue for incoming jobs
+
+If we use a thread pool in our system, it doesn't immediately call the handle_connection function. Instead, it submits the task to the pool's channel. An available worker will then take the task and handle the request independently. 
+
+This way, the `/sleep` request will no longer block other clients from sending requests. Only the worker handling the `/sleep` request is blocked, while the rest of the workers in the pool are free to process incoming requests. This means the other incoming client will be able to send their request and get their response while the previous client is still on sleep duration. 
+
+By implementing a thread pool, our system can handle multiple concurrent users. Not only that, we can control on how much resource is spent by changing the number of fixed workers. Additionally, request acceptance is now separated from their execution, making it more decoupled. 
+
