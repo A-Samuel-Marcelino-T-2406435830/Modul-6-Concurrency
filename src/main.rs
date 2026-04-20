@@ -13,20 +13,38 @@ fn main() {
     }
 }
 
+struct HttpResponse {
+    status_line: String,
+    body: String
+}
+
+impl HttpResponse {
+    fn response_to_string(&self) -> String {
+        let length = self.body.len();
+        format!("{}\r\nContent-Length: {}\r\n\r\n{}",
+                self.status_line, length, self.body)
+    }
+}
+
+fn get_response(request_line: &str) -> HttpResponse {
+    if request_line == "GET / HTTP/1.1" {
+        HttpResponse {
+            status_line: "HTTP/1.1 200 OK".to_string(),
+            body: fs::read_to_string("hello.html").unwrap()
+        }
+    }
+    else {
+        HttpResponse {
+            status_line: "HTTP/1.1 404 NOT FOUND".to_string(),
+            body: fs::read_to_string("bad.html").unwrap(),
+        }
+    }
+}
+
 fn handle_connection(mut stream: TcpStream) {
-    let buf_reader = BufReader::new(&mut stream);
-    let http_request: Vec<_> = buf_reader
-        .lines()
-        .map(|result| result.unwrap())
-        .take_while(|line| !line.is_empty())
-        .collect();
-    
-    let status_line = "HTTP/1.1 200 OK";
-    let contents = fs::read_to_string("hello.html").unwrap();
-    let length = contents.len();
+    let buf_reader = BufReader::new(&stream);
+    let request_line = buf_reader.lines().next().unwrap().unwrap();
+    let response = get_response(&request_line);
 
-    let response = 
-        format!("{status_line}\r\nContent-Length: {length}\r\n\r\n{contents}");
-
-    stream.write(response.as_bytes()).unwrap();
+    stream.write_all(response.response_to_string().as_bytes()).unwrap();
 }

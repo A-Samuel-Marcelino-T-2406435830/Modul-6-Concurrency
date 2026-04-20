@@ -43,3 +43,13 @@ HTTP/1.1 200 OK\r\nContent-Length: 153\r\n\r\n<!DOCTYPE html><html lang="en"> ..
 This formatted string is then written back to the Tcp stream and is delivered to the requester, resulting in the html page appearing in http://127.0.0.1:7878/ as shown in the image above.
 
 # Reflection 3
+![Commit 3 screen capture](/assets/images/commit3.png)
+
+I implemented a new `HttpResponse` abstraction so that each HTTP response (such as OK and NOT FOUND) encapsulates its status line and body as an internal variable, along with a `response_to_string` method responsible for formatting the status line and body into a valid writable HTTP message format. This ensures that the formatting logic is reusable among HTTP responses. 
+
+I then separated the choosing logic for selecting the appropriate response to a new function called `get_response`. This function acts as a response selector based on the given request. This way, the selection logic is separated from other connection handling tasks. Additionally, new HTTP responses and routings can be introduced by changing the parameters of `HttpResponse`. If needed, we can also extend `HttpResponse` to traits such as `OKHttpResponse`.
+
+Now the `handle_connection` method tasks are only: parsing request, calling `get_response`, write to TCP stream. Handling input and output seems much more appropriate for this method in particular.
+
+This refactor enforces code readability and single responsibility principle among each component, so that the logic is not forcefully fitted into a single one. 
+
