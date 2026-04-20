@@ -33,3 +33,13 @@ message-body
 
 We get this kind of output thanks to the `BufReader` in the `handle_connection` method. It allows us to wrap the raw `TcpStream` inside a buffer for efficient reading. The stream is read line-by-line, then we use `.unwrap()` on each line to extract raw string from the network readings. Since the HTTP request separates headers from the message-body with a new line, we stop reading until we hit that new line. The collected information is then formatted into the vector `http_request`. The vector is then printed and we got the output given above.
 
+# Reflection 2
+![Commit 2 screen capture](/assets/images/commit2.png)
+
+The new handle_connection method now writes a response in the form of an html (hello.html) to the TcpStream. The status line returns an OK HTTP response, which signals a success. The content is hello.html and the length is taken from the length of hello.html. The status, content, and length are then formatted into a string which may roughly looks like 
+```
+HTTP/1.1 200 OK\r\nContent-Length: 153\r\n\r\n<!DOCTYPE html><html lang="en"> ... </html>
+```
+This formatted string is then written back to the Tcp stream and is delivered to the requester, resulting in the html page appearing in http://127.0.0.1:7878/ as shown in the image above.
+
+# Reflection 3
