@@ -2,6 +2,8 @@ use std::{
     fs,
     io::{prelude::*, BufReader},
     net::{TcpListener, TcpStream},
+    thread,
+    time::Duration,
 };
 
 fn main() {
@@ -27,17 +29,24 @@ impl HttpResponse {
 }
 
 fn get_response(request_line: &str) -> HttpResponse {
-    if request_line == "GET / HTTP/1.1" {
-        HttpResponse {
+    match request_line {
+        "GET / HTTP/1.1" => HttpResponse {
             status_line: "HTTP/1.1 200 OK".to_string(),
-            body: fs::read_to_string("hello.html").unwrap()
+            body: fs::read_to_string("hello.html").unwrap(),
+        },
+
+        "GET /sleep HTTP/1.1" => {
+            thread::sleep(Duration::from_secs(10));
+            HttpResponse {
+                status_line: "HTTP/1.1 200 OK".to_string(),
+                body: fs::read_to_string("hello.html").unwrap(),
+            }
         }
-    }
-    else {
-        HttpResponse {
+
+        _ => HttpResponse {
             status_line: "HTTP/1.1 404 NOT FOUND".to_string(),
             body: fs::read_to_string("bad.html").unwrap(),
-        }
+        },
     }
 }
 

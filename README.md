@@ -53,3 +53,11 @@ Now the `handle_connection` method tasks are only: parsing request, calling `get
 
 This refactor enforces code readability and single responsibility principle among each component, so that the logic is not forcefully fitted into a single one. 
 
+# Reflection 4
+The sleep introduces a delay to the system. Whenever a client requests `/sleep`, the current thread is instructed to stop their work for 10 seconds. During this sleep duration, this thread won't execute any code, effectively halting the server since the server is single-threaded. 
+
+When another client sends a request during that sleep duration, our single-threaded server can't respond to it. It must finish that sleep duration first, handle the first client's request, then the second client. 
+
+This behaviour highlights an important limitation of single-threaded servers when handling blocking operations. Handling this situation is very crucial, especially when our web server has many concurrent users. If we can't solve this issue, then it will significantly degrade our system's responsiveness. 
+
+We can address this issue by using mechanisms such as thread pools and sychronizations. These will help us in handling multiple concurrent requests.
